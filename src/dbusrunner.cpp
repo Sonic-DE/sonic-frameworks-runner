@@ -17,7 +17,6 @@
 #include <QIcon>
 #include <set>
 
-#include <KWaylandExtras>
 #include <KWindowSystem>
 
 #include "dbusutils_p.h"
@@ -288,19 +287,7 @@ void DBusRunner::run(const KRunner::RunnerContext & /*context*/, const KRunner::
         QDBusConnection::sessionBus().call(runMethod, QDBus::NoBlock);
     };
 
-    if (KWindowSystem::isPlatformWayland() && qGuiApp->focusWindow()) {
-        auto tokenFuture = KWaylandExtras::xdgActivationToken(qGuiApp->focusWindow(), {});
-        tokenFuture.then(this, [this, service, matchId, actionId, run](const QString &token) {
-            if (!token.isEmpty()) {
-                auto activationTokenMethod = QDBusMessage::createMethodCall(service, m_path, m_ifaceName, QStringLiteral("SetActivationToken"));
-                activationTokenMethod.setArguments(QList<QVariant>{token});
-                QDBusConnection::sessionBus().call(activationTokenMethod, QDBus::NoBlock);
-            }
-            run();
-        });
-    } else {
-        run();
-    }
+    run();
 }
 
 QImage DBusRunner::decodeImage(const RemoteImage &remoteImage)
